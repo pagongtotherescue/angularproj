@@ -1,0 +1,12 @@
+textarea{
+    width:300px;
+  }
+  button{
+    margin: auto;
+    margin-left: 1rem;
+    margin-bottom: 1rem;
+  }
+  mat-form-field, textarea{
+    width: 100%;
+    margin: auto;
+  }
