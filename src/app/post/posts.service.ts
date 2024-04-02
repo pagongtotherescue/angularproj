@@ -27,17 +27,17 @@ export class PostService {
     }
 
 // Add post
-    addPost(title: string, content: string,): Observable<any> {
-        const postData = { title, content, };
-        return this.http.post(this.apiUrl, postData).pipe(
-            tap(() => {
-                // Fetch the updated post
-                this.getPosts().subscribe(posts => {
-                    this.postUpdated.next(posts);
-                });
-            })
-        );
-    }
+addPost(title: string, content: string, imageUrl: string): Observable<any> {
+    const postData = { title, content, imageUrl };
+    return this.http.post(this.apiUrl, postData).pipe(
+        tap(() => {
+            // Fetch the updated post
+            this.getPosts().subscribe(posts => {
+                this.postUpdated.next(posts);
+            });
+        })
+    );
+}
     
     deletePost(postId: string): Observable<any> {
         return this.http.delete(`${this.apiUrl}/${postId}`).pipe(

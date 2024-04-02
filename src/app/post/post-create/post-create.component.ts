@@ -8,8 +8,6 @@ import { PostService } from '../posts.service';
     styleUrls: ['./post-create.component.css'],
 })
 export class PostCreateComponent {
-    enteredTitle = '';
-    enteredComponent = '';
 
     constructor(public postsService: PostService) {}
 
@@ -19,9 +17,13 @@ export class PostCreateComponent {
         if (form.invalid) {
             return;
         }
-        this.postsService.addPost(form.value.title, form.value.content).subscribe(() => {
-  
-            form.resetForm();
+        this.postsService.addPost(form.value.title, form.value.content, form.value.image).subscribe({
+            next: () => {
+                form.resetForm();
+            },
+            error: (error) => {
+                console.error('Error adding post:', error);
+            }
         });
     }
 }

@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { PostService } from '../posts.service';
 import { Post } from '../post.model';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
  selector: 'app-post-list',
@@ -16,10 +17,12 @@ export class PostListComponent implements OnInit, OnDestroy {
      _id: '',
      title: '',
      content: '',
+     imageUrl: '',
   };
 
  constructor(public postsService: PostService) { }
 
+        // Example of fetching posts and including imageUrl
         ngOnInit() {
             this.postsService.getPosts().subscribe((posts: Post[]) => {
               this.posts = posts;

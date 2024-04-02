@@ -31,7 +31,8 @@ app.use((req, res, next) => {
 app.post('/api/posts', (req, res) => {
     const post = new Post({
        title: req.body.title,
-       content: req.body.content
+       content: req.body.content,
+       imageUrl: req.body.imageUrl,
     });
     post.save()
        .then(savedPost => {

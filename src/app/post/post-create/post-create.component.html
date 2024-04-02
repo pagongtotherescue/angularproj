@@ -2,33 +2,37 @@
     <form (submit)="onAddPost(postForm)" #postForm="ngForm">
         <mat-form-field>
             <input matInput 
-            type="text" 
-            name="title" 
-            ngModel required
-            #title="ngModel"
+                type="text" 
+                name="title" 
+                ngModel 
+                required
+                #title="ngModel"
+                placeholder="Title"
             />
-        <mat-error *ngIf="title.invalid">Please enter a title</mat-error>
+            <mat-error *ngIf="title.invalid">Please enter a title</mat-error>
         </mat-form-field>
         <mat-form-field>
             <textarea matInput rows="4" 
-            name="content" 
-            ngModel 
-            required
-            #content="ngModel"
+                name="content" 
+                ngModel 
+                required
+                #content="ngModel"
+                placeholder="Content"
             ></textarea>
             <mat-error *ngIf="content.invalid">Please enter a content</mat-error>
         </mat-form-field>
         <mat-form-field>
-            <mat-label>Add Image</mat-label>
+            <mat-label>Add Image URL</mat-label>
             <input matInput 
-            type="text" 
-            name="image" 
-            ngModel 
-            required
-            #image="ngModel"
+                type="url" 
+                name="image" 
+                ngModel 
+                required
+                #image="ngModel"
+                placeholder="Image URL"
             />
-            <mat-error *ngIf="image.invalid">Please enter a image</mat-error>
-        </mat-form-field> <!-- This closing tag -->
+            <mat-error *ngIf="image.invalid">Please enter a valid image URL</mat-error>
+        </mat-form-field>
         <button mat-raised-button color="primary" type="submit">Save Post</button>
     </form>
 </mat-card>

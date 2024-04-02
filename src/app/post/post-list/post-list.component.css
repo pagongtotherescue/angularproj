@@ -5,3 +5,8 @@
   .info-text {
     text-align: center;
   }
+  .post-image {
+    width: 100px; /* Adjust width as needed */
+    height: 100px; /* Adjust height as needed */
+    object-fit: cover; /* This will ensure the image covers the area without distortion */
+   }
