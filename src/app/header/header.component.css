@@ -1,3 +1,13 @@
 .example-spacer {
   flex: 1 1 auto;
 }
+.mat-toolbar {
+  display: flex;
+  align-items: center; /* This ensures vertical alignment */
+ }
+ 
+ .logo {
+  width: 200px; /* Adjust the width as needed */
+  height: auto; /* Maintain aspect ratio */
+  margin-right: 10px; /* Add some space to the right of the logo */
+ }

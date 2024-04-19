@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { PostService } from '../posts.service';
 import { Post } from '../post.model';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
  selector: 'app-post-list',
@@ -13,19 +14,23 @@ export class PostListComponent implements OnInit, OnDestroy {
  editingPostId: string | null = null; // Track the post being edited
  private postUpdateSub!: Subscription;
  updatedPost: Post = {
-     _id: '',
-     title: '',
-     content: '',
-     imageUrl: '',
+    _id: '',
+    title: '',
+    content: '',
+    imageUrl: '',
  };
  currentPage = 1;
  totalPosts = 0;
  postsPerPage = 10;
 
- constructor(public postsService: PostService) { }
+ constructor(public postsService: PostService, private router: Router, private route: ActivatedRoute) { }
 
  ngOnInit() {
-    this.fetchPosts();
+    this.route.queryParams.subscribe(params => {
+      const page = params['page'] || 1;
+      this.currentPage = page;
+      this.fetchPosts();
+    });
 
     // Subscribe to post updates
     this.postUpdateSub = this.postsService.getPostUpdateListener().subscribe(posts => {
@@ -58,15 +63,15 @@ export class PostListComponent implements OnInit, OnDestroy {
  }
 
  onSavePost(post: Post) {
-   console.log('Saving post:', post); // Debugging line
-   this.postsService.editPost(post._id, post).subscribe(() => {
-     console.log('Post saved successfully'); // Debugging line
-     // Exit edit mode
-     this.editingPostId = null;
-     this.fetchPosts(); // Refresh the posts list after saving
-   }, error => {
-     console.error('Error saving post:', error); // Debugging line
-   });
+    console.log('Saving post:', post); // Debugging line
+    this.postsService.editPost(post._id, post).subscribe(() => {
+      console.log('Post saved successfully'); // Debugging line
+      // Exit edit mode
+      this.editingPostId = null;
+      this.fetchPosts(); // Refresh the posts list after saving
+    }, error => {
+      console.error('Error saving post:', error); // Debugging line
+    });
  }
 
  onCancelEdit() {
@@ -75,6 +80,11 @@ export class PostListComponent implements OnInit, OnDestroy {
 
  onPageChange(newPage: number) {
     this.currentPage = newPage;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: newPage },
+      queryParamsHandling: 'merge'
+    });
     this.fetchPosts();
  }
 }
