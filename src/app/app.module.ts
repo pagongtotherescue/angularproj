@@ -14,6 +14,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { PostListComponent } from './post/post-list/post-list.component';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import { PostListComponent } from './post/post-list/post-list.component';
     MatToolbarModule,
     MatIconModule,
     MatExpansionModule,
+    MatPaginatorModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

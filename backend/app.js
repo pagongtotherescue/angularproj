@@ -20,6 +20,7 @@ mongoose.connect("mongodb+srv://mildangelee:mildangelee@cluster0.udqsxgk.mongodb
 .catch(() => {
     console.log('connection failed');
 });
+
 // CORS headers
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -42,8 +43,8 @@ app.post('/api/posts', (req, res) => {
          console.error(err);
          res.status(500).json({ message: 'Error saving post' });
        });
-   });
-   
+});
+
 // DELETE route for deleting 
 app.delete('/api/posts/:id', async (req, res) => {
     try {
@@ -55,7 +56,7 @@ app.delete('/api/posts/:id', async (req, res) => {
     } catch (error) {
        res.status(500).json({ message: 'Server error' });
     }
-   });
+});
 
 // update route for updating 
 app.put('/api/posts/:id', async (req, res) => {
@@ -72,14 +73,27 @@ app.put('/api/posts/:id', async (req, res) => {
     }
 });
 
-// phinded 
-app.use('/api/posts', (req, res, next) => {
-   Post.find().then(documents => {
-    res.status(200).json({
-        message: 'Posts fetched successfully',
-        posts: documents
-     });
-    })
+// Fetch posts with pagination
+app.get('/api/posts', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 5; // Set limit to 5 posts per page
+  const skip = (page - 1) * limit;
+
+  try {
+      const posts = await Post.find().skip(skip).limit(limit);
+      const totalPosts = await Post.countDocuments();
+
+      res.status(200).json({
+          message: 'Posts fetched successfully',
+          posts: posts,
+          totalPosts: totalPosts,
+          page: page,
+          limit: limit
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error fetching posts' });
+  }
 });
 
 // Error handling middleware

@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Post } from "./post.model";
 import { Observable, Subject } from "rxjs";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { map, tap } from 'rxjs/operators';
 
 @Injectable({
@@ -13,11 +13,14 @@ export class PostService {
 
     constructor(private http: HttpClient) { }
 
-    getPosts(): Observable<Post[]> {
-        return this.http.get<{ message: string; posts: Post[] }>(this.apiUrl).pipe(
+    getPosts(page: number = 1, limit: number = 10): Observable<{ message: string; posts: Post[]; totalPosts: number; page: number; limit: number }> {
+        const params = new HttpParams()
+            .set('page', page.toString())
+            .set('limit', limit.toString());
+        return this.http.get<{ message: string; posts: Post[]; totalPosts: number; page: number; limit: number }>(this.apiUrl, { params }).pipe(
             map(data => {
                 this.postUpdated.next([...data.posts]);
-                return data.posts;
+                return data;
             })
         );
     }
@@ -26,25 +29,25 @@ export class PostService {
         return this.postUpdated.asObservable();
     }
 
-// Add post
-addPost(title: string, content: string, imageUrl: string): Observable<any> {
-    const postData = { title, content, imageUrl };
-    return this.http.post(this.apiUrl, postData).pipe(
-        tap(() => {
-            // Fetch the updated post
-            this.getPosts().subscribe(posts => {
-                this.postUpdated.next(posts);
-            });
-        })
-    );
-}
+    // Add post
+    addPost(title: string, content: string, imageUrl: string): Observable<any> {
+        const postData = { title, content, imageUrl };
+        return this.http.post(this.apiUrl, postData).pipe(
+            tap(() => {
+                // Fetch the updated post
+                this.getPosts().subscribe(posts => {
+                    this.postUpdated.next(posts.posts);
+                });
+            })
+        );
+    }
     
     deletePost(postId: string): Observable<any> {
         return this.http.delete(`${this.apiUrl}/${postId}`).pipe(
             tap(() => {
                 // Fetch the updated list post
                 this.getPosts().subscribe(posts => {
-                    this.postUpdated.next(posts);
+                    this.postUpdated.next(posts.posts);
                 });
             })
         );
@@ -53,9 +56,11 @@ addPost(title: string, content: string, imageUrl: string): Observable<any> {
     editPost(postId: string, updatedPost: Post): Observable<any> {
         return this.http.put(`${this.apiUrl}/${postId}`, updatedPost).pipe(
             tap(() => {
-
+                // Fetch the updated list post
+                this.getPosts().subscribe(posts => {
+                    this.postUpdated.next(posts.posts);
+                });
             })
         );
     }
-    
 }
