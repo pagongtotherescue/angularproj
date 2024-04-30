@@ -15,7 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { PostListComponent } from './post/post-list/post-list.component';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { LoginComponent } from './login/login.component';
+import { LoginComponent } from './post/login/login.component';
 
 @NgModule({
   declarations: [
