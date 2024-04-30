@@ -1,13 +1,63 @@
-:host {
-    display: block;
-    margin-top: 1rem;
+.content-container {
+  display: flex;
+  justify-content: flex-start; /* Align posts to the left */
+  flex-wrap: wrap;
+}
+
+.post-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.post-row {
+  display: flex;
+  flex-wrap: flex;
+  width: calc(100% + 20px);
+  margin-left: -70px; /* Adjust the negative margin to move the posts more to the left */
+}
+
+.post-box {
+  flex: 0 0 calc(20% - 20px); /* Adjust width to fit five posts in a row */
+  margin: 0 10px 20px 0;
+  padding: 20px;
+  border: 1px solid #FFDAB9;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.post-title {
+  margin-top: 0;
+}
+
+.post-content {
+  margin-top: 10px;
+}
+
+.post-image {
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+}
+
+.mat-action-row {
+  margin-top: 10px;
+}
+
+.even {
+  background-color: #f9f9f9;
+}
+
+.odd {
+  background-color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .post-box {
+    flex: 0 0 calc(50% - 20px); /* Two posts per row on smaller screens */
   }
-  .info-text {
-    text-align: center;
+
+  .post-row {
+    width: calc(100% + 20px); /* Adjust width to include margins */
   }
-  .post-image {
-    width: 225px; /* Fixed width */
-    height: 225px; /* Fixed height */
-    object-fit: cover; /* Ensures the image covers the area without distortion */
-   }
-   
+}
