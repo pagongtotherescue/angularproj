@@ -16,6 +16,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { PostListComponent } from './post/post-list/post-list.component';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { LoginComponent } from './post/login/login.component';
+import { SignUpComponent } from './sign-up/sign-up.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { LoginComponent } from './post/login/login.component';
     HeaderComponent,
     PostListComponent,
     LoginComponent,
+    SignUpComponent,
   ],
   imports: [
     BrowserModule,

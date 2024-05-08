@@ -23,4 +23,13 @@ export class AuthService {
     // Remove the token from local storage
     localStorage.removeItem('authToken');
  }
+
+ // Add this method inside the AuthService class
+signUp(username: string, password: string): Observable<any> {
+  return this.http.post<any>(`${this.apiUrl}/signup`, { username, password })
+     .pipe(tap(response => {
+       // Handle the response, e.g., store the token in local storage
+       localStorage.setItem('authToken', response.token);
+     }));
+ }
 }

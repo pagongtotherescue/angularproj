@@ -30,9 +30,8 @@
     color: #666;
 }
 
-.form-group input[type="text"],
-.form-group input[type="password"] {
-    width: 90%;
+.form-group input {
+    width: 89%;
     padding: 15px;
     border: 1px solid #ced4da;
     border-radius: 5px;
@@ -40,8 +39,7 @@
     color: #333;
 }
 
-.form-group input[type="text"]:focus,
-.form-group input[type="password"]:focus {
+.form-group input:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
