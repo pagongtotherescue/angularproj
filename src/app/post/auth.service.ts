@@ -1,35 +1,52 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 @Injectable({
- providedIn: 'root'
+  providedIn: 'root'
 })
 export class AuthService {
- private apiUrl = 'http://localhost:3000/api/auth'; // Replace with your backend API URL
+  private apiUrl = 'http://localhost:3000/api'; // Backend API URL
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  public isAuthenticated = this.isAuthenticatedSubject.asObservable();
 
- constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) { }
 
- login(username: string, password: string): Observable<any> {
+  private setAuthenticationStatus(isAuthenticated: boolean): void {
+    this.isAuthenticatedSubject.next(isAuthenticated);
+  }
+
+  login(username: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { username, password })
-      .pipe(tap(response => {
-        // Handle the response, e.g., store the token in local storage
-        localStorage.setItem('authToken', response.token);
-      }));
- }
+      .pipe(
+        tap(() => this.setAuthenticationStatus(true)),
+        catchError(error => {
+          console.error('Login failed:', error);
+          return throwError(error);
+        })
+      );
+  }
 
- logout(): void {
-    // Remove the token from local storage
-    localStorage.removeItem('authToken');
- }
+  logout(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/logout`, {})
+      .pipe(
+        tap(() => this.setAuthenticationStatus(false)),
+        catchError(error => {
+          console.error('Logout failed:', error);
+          return throwError(error);
+        })
+      );
+  }
 
- // Add this method inside the AuthService class
-signUp(username: string, password: string): Observable<any> {
-  return this.http.post<any>(`${this.apiUrl}/signup`, { username, password })
-     .pipe(tap(response => {
-       // Handle the response, e.g., store the token in local storage
-       localStorage.setItem('authToken', response.token);
-     }));
- }
+  signUp(username: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/signup`, { username, password })
+      .pipe(
+        catchError(error => {
+          console.error('Signup failed:', error);
+          return throwError(error);
+        })
+      );
+  }
 }

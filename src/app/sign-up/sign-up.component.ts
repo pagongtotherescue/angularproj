@@ -20,7 +20,7 @@ export class SignUpComponent {
         this.router.navigate(['/login']);
       },
       (error: any) => {
-        // Handle sign-up error
+        // Handle sign-up error 
         console.error('Sign-up failed', error);
       }
     );

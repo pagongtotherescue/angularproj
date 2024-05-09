@@ -4,6 +4,10 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const Post = require('./models/post.js');
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const User = require('./models/user.js'); 
+const jwt = require('jsonwebtoken');
+
 
 //bodyParser middleware
 app.use(bodyParser.json());
@@ -95,6 +99,54 @@ app.get('/api/posts', async (req, res) => {
       res.status(500).json({ message: 'Error fetching posts' });
   }
 });
+
+// Signup Route
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, password: hashedPassword });
+    await user.save();
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// Login Route
+app.post('/api/login', async (req, res) => {
+  try {
+      const { username, password } = req.body;
+      const user = await User.findOne({ username });
+      if (!user) {
+          return res.status(401).json({ message: 'Authentication failed' });
+      }
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+          return res.status(401).json({ message: 'Authentication failed' });
+      }
+      const token = jwt.sign({ userId: user._id }, 'your_secret_key', { expiresIn: '1h' });
+      res.status(200).json({ token });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Logout Route (optional if you want to invalidate tokens)
+app.post('/api/logout', (req, res) => {
+  // Implement logout functionality, e.g., blacklist token
+  res.status(200).json({ message: 'Logged out successfully' });
+});
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
