@@ -12,7 +12,7 @@ import { AuthService } from '../auth.service';
 export class LoginComponent {
  username: string = '';
  password: string = '';
- errorMessage: string = ''; // Add a variable to hold error messages
+ errorMessage: string = ''; 
 
  constructor(private authService: AuthService, private router: Router) { }
 
@@ -21,7 +21,7 @@ export class LoginComponent {
     this.authService.login(this.username, this.password).subscribe(
       (response: any) => {
         // Redirect to some page after successful login
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/posts']);
       },
       (error: any) => {
         // Handle login error

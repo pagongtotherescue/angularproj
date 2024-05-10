@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../post/auth.service';
+import { Router } from '@angular/router'; // Import Router
 
 @Component({
   selector: 'app-header',
@@ -9,11 +10,16 @@ import { AuthService } from '../post/auth.service';
 export class HeaderComponent implements OnInit {
   isLoggedIn = false;
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService, private router: Router) { } // Inject Router
 
   ngOnInit(): void {
     this.authService.isAuthenticated.subscribe(isAuthenticated => {
       this.isLoggedIn = isAuthenticated;
     });
+  }
+
+  logout(): void {
+    this.authService.logout(); 
+    this.router.navigate(['/login']); // Access Router property to navigate
   }
 }
