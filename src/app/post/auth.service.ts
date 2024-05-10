@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +31,12 @@ export class AuthService {
   logout(): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/logout`, {})
       .pipe(
-        tap(() => this.setAuthenticationStatus(false)),
+        tap(() => {
+          // Clear authentication status on successful logout
+          this.setAuthenticationStatus(false);
+          // Clear any authentication-related information stored locally
+          localStorage.removeItem('token'); // Assuming token is stored in localStorage
+        }),
         catchError(error => {
           console.error('Logout failed:', error);
           return throwError(error);

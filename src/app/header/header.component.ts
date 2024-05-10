@@ -19,7 +19,17 @@ export class HeaderComponent implements OnInit {
   }
 
   logout(): void {
-    this.authService.logout(); 
-    this.router.navigate(['/login']); // Access Router property to navigate
+    this.authService.logout().subscribe(
+      () => {
+        // Logout successful, update isLoggedIn directly
+        this.isLoggedIn = false;
+        // Redirect to login page
+        this.router.navigate(['/login']);
+      },
+      error => {
+        console.error('Logout failed:', error);
+        // Handle error if necessary
+      }
+    );
   }
-}
+}  

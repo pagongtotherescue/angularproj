@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -8,6 +9,10 @@ const bcrypt = require('bcrypt');
 const User = require('./models/user.js'); 
 const jwt = require('jsonwebtoken');
 
+// Generate dynamic secret key
+const secretKey = crypto.randomBytes(32).toString('hex');
+
+console.log('Generated Secret Key:', secretKey); // Output the generated secret key for reference
 
 //bodyParser middleware
 app.use(bodyParser.json());
@@ -33,21 +38,37 @@ app.use((req, res, next) => {
     next();
 });
 
-app.post('/api/posts', (req, res) => {
-    const post = new Post({
-       title: req.body.title,
-       content: req.body.content,
-       imageUrl: req.body.imageUrl,
+// Middleware to verify JWT token
+const verifyToken = (req, res, next) => {
+    const token = req.headers.authorization;
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' });
+    }
+    jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Failed to authenticate token' });
+        }
+        req.userId = decoded.userId;
+        next();
     });
-    post.save()
-       .then(savedPost => {
-         res.status(201).json(savedPost);
-       })
-       .catch(err => {
-         console.error(err);
-         res.status(500).json({ message: 'Error saving post' });
-       });
+};
+
+app.post('/api/posts', (req, res) => {
+  const post = new Post({
+     title: req.body.title,
+     content: req.body.content,
+     imageUrl: req.body.imageUrl,
+  });
+  post.save()
+     .then(savedPost => {
+       res.status(201).json(savedPost);
+     })
+     .catch(err => {
+       console.error(err);
+       res.status(500).json({ message: 'Error saving post' });
+     });
 });
+
 
 // DELETE route for deleting 
 app.delete('/api/posts/:id', async (req, res) => {
@@ -103,20 +124,20 @@ app.get('/api/posts', async (req, res) => {
 // Signup Route
 app.post('/api/signup', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const existingUser = await User.findOne({ username });
+      const { username, password } = req.body;
+      const existingUser = await User.findOne({ username });
 
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username already exists' });
-    }
+      if (existingUser) {
+          return res.status(400).json({ message: 'Username already exists' });
+      }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashedPassword });
-    await user.save();
-    res.status(201).json({ message: 'User created successfully' });
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = new User({ username, password: hashedPassword });
+      await user.save();
+      res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ message: 'Server error' });
+      console.error('Signup error:', error);
+      res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -133,7 +154,7 @@ app.post('/api/login', async (req, res) => {
       if (!isPasswordValid) {
           return res.status(401).json({ message: 'Authentication failed' });
       }
-      const token = jwt.sign({ userId: user._id }, 'your_secret_key', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user._id }, secretKey, { expiresIn: '1h' });
       res.status(200).json({ token });
   } catch (error) {
       console.error(error);
@@ -147,6 +168,8 @@ app.post('/api/logout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
+// Middleware to protect routes
+app.use('/api/posts', verifyToken);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
