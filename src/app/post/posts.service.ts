@@ -35,8 +35,9 @@ export class PostService {
     }
 
     // Add post
-    addPost(title: string, content: string, imageUrl: string, token: string): Observable<any> {
+    addPost(title: string, content: string, imageUrl: string): Observable<any> {
         const postData = { title, content, imageUrl };
+        const token = this.authService.getToken() || '';
         const headers = new HttpHeaders().set('Authorization', 'Bearer ' + token); // Include the user's token in the request headers
         return this.http.post(this.apiUrl, postData, { headers }).pipe(
             tap(() => {
@@ -49,10 +50,7 @@ export class PostService {
     }
     
     deletePost(postId: string): Observable<any> {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No token found');
-        }
+        const token = this.authService.getToken() || '';
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
         return this.http.delete(`${this.apiUrl}/${postId}`, { headers }).pipe(
             tap(() => {
@@ -65,10 +63,7 @@ export class PostService {
     }
     
     editPost(postId: string, updatedPost: Post): Observable<any> {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No token found');
-        }
+        const token = this.authService.getToken() || '';
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
         return this.http.put(`${this.apiUrl}/${postId}`, updatedPost, { headers }).pipe(
             tap(() => {

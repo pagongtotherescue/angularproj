@@ -21,7 +21,7 @@ export class PostCreateComponent {
         // Check if token is null and provide a default value if needed
         const token = this.authService.getToken() || '';
     
-        this.postsService.addPost(form.value.title, form.value.content, form.value.image, token).subscribe({
+        this.postsService.addPost(form.value.title, form.value.content, form.value.image).subscribe({
             next: () => {
                 form.resetForm();
             },
@@ -30,4 +30,4 @@ export class PostCreateComponent {
             }
         });
     }
-}    
+}
