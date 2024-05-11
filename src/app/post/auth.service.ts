@@ -11,16 +11,31 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated = this.isAuthenticatedSubject.asObservable();
 
+  private token: string | null = null;
+
   constructor(private http: HttpClient) { }
 
   private setAuthenticationStatus(isAuthenticated: boolean): void {
     this.isAuthenticatedSubject.next(isAuthenticated);
   }
 
+  // Method to set the user's token
+  setToken(token: string): void {
+    this.token = token;
+  }
+
+  // Method to get the user's token
+  getToken(): string | null {
+    return this.token;
+  }  
+
   login(username: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { username, password })
       .pipe(
-        tap(() => this.setAuthenticationStatus(true)),
+        tap((response) => {
+          this.setToken(response.token); // Set the token received from the server
+          this.setAuthenticationStatus(true);
+        }),
         catchError(error => {
           console.error('Login failed:', error);
           return throwError(error);
@@ -35,6 +50,7 @@ export class AuthService {
           // Clear authentication status on successful logout
           this.setAuthenticationStatus(false);
           // Clear any authentication-related information stored locally
+          this.token = null;
           localStorage.removeItem('token'); // Assuming token is stored in localStorage
         }),
         catchError(error => {

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { PostService } from '../posts.service';
+import { AuthService } from '../auth.service';
 
 @Component({
     selector: 'app-post-create',
@@ -9,15 +10,18 @@ import { PostService } from '../posts.service';
 })
 export class PostCreateComponent {
 
-    constructor(public postsService: PostService) {}
+    constructor(public postsService: PostService, private authService: AuthService) {}
 
 
-    //edit ini gari
     onAddPost(form: NgForm) {
         if (form.invalid) {
             return;
         }
-        this.postsService.addPost(form.value.title, form.value.content, form.value.image).subscribe({
+    
+        // Check if token is null and provide a default value if needed
+        const token = this.authService.getToken() || '';
+    
+        this.postsService.addPost(form.value.title, form.value.content, form.value.image, token).subscribe({
             next: () => {
                 form.resetForm();
             },
@@ -26,4 +30,4 @@ export class PostCreateComponent {
             }
         });
     }
-}
+}    

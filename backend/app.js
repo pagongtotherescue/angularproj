@@ -40,36 +40,43 @@ app.use((req, res, next) => {
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
-    const token = req.headers.authorization;
-    if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
-    }
-    jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: 'Failed to authenticate token' });
-        }
-        req.userId = decoded.userId;
-        next();
-    });
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token provided' });
+  }
+  const token = authHeader.split(' ')[1]; // Extract token from Authorization header
+  jwt.verify(token, secretKey, (err, decoded) => {
+      if (err) {
+          return res.status(401).json({ message: 'Failed to authenticate token' });
+      }
+      req.userId = decoded.userId;
+      next();
+  });
 };
 
-app.post('/api/posts', (req, res) => {
-  const post = new Post({
-     title: req.body.title,
-     content: req.body.content,
-     imageUrl: req.body.imageUrl,
+// Add post
+app.post('/api/posts', verifyToken, (req, res) => {
+    const { title, content, imageUrl } = req.body;
+    const userId = req.userId; // Get the user ID from the token
+  
+    const post = new Post({
+      title,
+      content,
+      imageUrl,
+      creator: userId // Associate the post with the authenticated user
+    });
+  
+    post.save()
+      .then(savedPost => {
+        res.status(201).json(savedPost);
+      })
+      .catch(err => {
+        console.error(err);
+        res.status(500).json({ message: 'Error saving post' });
+      });
   });
-  post.save()
-     .then(savedPost => {
-       res.status(201).json(savedPost);
-     })
-     .catch(err => {
-       console.error(err);
-       res.status(500).json({ message: 'Error saving post' });
-     });
-});
-
-
+  
+  
 // DELETE route for deleting 
 app.delete('/api/posts/:id', async (req, res) => {
     try {
@@ -99,27 +106,29 @@ app.put('/api/posts/:id', async (req, res) => {
 });
 
 // Fetch posts with pagination
-app.get('/api/posts', async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = 5; // Set limit to 5 posts per page
-  const skip = (page - 1) * limit;
-
-  try {
-      const posts = await Post.find().skip(skip).limit(limit);
-      const totalPosts = await Post.countDocuments();
-
+app.get('/api/posts', verifyToken, async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5; // Set limit to 5 posts per page
+    const skip = (page - 1) * limit;
+  
+    try {
+      const userId = req.userId; // Get the user ID from the token
+      const posts = await Post.find({ creator: userId }).skip(skip).limit(limit);
+      const totalPosts = await Post.countDocuments({ creator: userId });
+  
       res.status(200).json({
-          message: 'Posts fetched successfully',
-          posts: posts,
-          totalPosts: totalPosts,
-          page: page,
-          limit: limit
+        message: 'Posts fetched successfully',
+        posts: posts,
+        totalPosts: totalPosts,
+        page: page,
+        limit: limit
       });
-  } catch (error) {
+    } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Error fetching posts' });
-  }
-});
+    }
+  });
+  
 
 // Signup Route
 app.post('/api/signup', async (req, res) => {
