@@ -11,9 +11,14 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated = this.isAuthenticatedSubject.asObservable();
 
-  private token: string | null = null;
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // Upon initialization, check if token exists in local storage
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.setToken(token);
+      this.setAuthenticationStatus(true);
+    }
+  }
 
   private setAuthenticationStatus(isAuthenticated: boolean): void {
     this.isAuthenticatedSubject.next(isAuthenticated);
@@ -21,12 +26,12 @@ export class AuthService {
 
   // Method to set the user's token
   setToken(token: string): void {
-    this.token = token;
+    localStorage.setItem('token', token); // Store token in local storage
   }
 
   // Method to get the user's token
   getToken(): string | null {
-    return this.token;
+    return localStorage.getItem('token');
   }  
 
   login(username: string, password: string): Observable<any> {
@@ -50,8 +55,7 @@ export class AuthService {
           // Clear authentication status on successful logout
           this.setAuthenticationStatus(false);
           // Clear any authentication-related information stored locally
-          this.token = null;
-          localStorage.removeItem('token'); // Assuming token is stored in localStorage
+          localStorage.removeItem('token'); // Remove token from local storage
         }),
         catchError(error => {
           console.error('Logout failed:', error);
