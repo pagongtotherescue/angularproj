@@ -1,15 +1,35 @@
+.post-card {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .post-form {
   display: flex;
   flex-direction: column;
-  padding: 16px;
 }
 
 .mat-form-field {
-  margin-bottom: 16px;
-  width: 100%;
+  margin-bottom: 20px;
+}
+
+.mat-form-field:last-child {
+  margin-bottom: 0; /* Remove margin bottom for the last form field */
+}
+
+.mat-error {
+  font-size: 14px;
+  color: red;
 }
 
 .button-container {
   display: flex;
   justify-content: flex-end;
+}
+
+/* Adjust button style */
+button[type="submit"] {
+  min-width: 120px;
 }

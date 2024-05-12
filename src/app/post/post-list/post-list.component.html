@@ -12,25 +12,36 @@
             <p>{{ post.content }}</p>
             <img *ngIf="post.imageUrl" [src]="post.imageUrl" alt="Post Image" class="post-image">
           </div>
-          <div *ngIf="editingPostId === post._id">
-            <form (ngSubmit)="onSavePost(post)">
-              <mat-form-field>
-                <mat-label>Title</mat-label>
-                <input matInput [(ngModel)]="post.title" name="title">
-              </mat-form-field> &nbsp;
-              <mat-form-field>
-                <mat-label>Content</mat-label>
-                <textarea matInput [(ngModel)]="post.content" name="content"></textarea>
-              </mat-form-field> &nbsp;
-              <button mat-raised-button color="primary" type="submit">Save</button> -
+      <!-- Edit -->
+      <div *ngIf="!editingPostId || editingPostId === post._id">
+        <!-- Edit form -->
+        <div *ngIf="editingPostId === post._id" class="edit-form-container">
+          <form (ngSubmit)="onSavePost(post)" class="edit-form">
+            <mat-form-field class="edit-input">
+              <mat-label>Title</mat-label>
+              <input matInput [(ngModel)]="post.title" name="title">
+            </mat-form-field>
+            <mat-form-field class="edit-input">
+              <mat-label>Content</mat-label>
+              <textarea matInput [(ngModel)]="post.content" name="content"></textarea>
+            </mat-form-field>
+            <div class="edit-buttons">
+              <button mat-raised-button color="primary" type="submit">Save</button>
               <button mat-raised-button color="warn" (click)="onCancelEdit()">Cancel</button>
-            </form>
-          </div>
+            </div>
+          </form>
+        </div>
+      
         <!-- Buttons -->
-          <div class="button-container">
-            <button mat-button color="primary" (click)="onEditPost(post._id)">Edit</button>
-            <button mat-button color="warn" (click)="onDeletePost(post._id)">Delete</button>
-          </div>
+        <div *ngIf="!editingPostId || editingPostId !== post._id" class="button-container">
+          <button mat-button color="primary" (click)="onEditPost(post._id)">
+            <mat-icon>edit</mat-icon> Edit
+          </button>
+          <button mat-button color="warn" (click)="onDeletePost(post._id)">
+            <mat-icon>delete</mat-icon> Delete
+          </button>
+        </div>
+      </div>            
         </div>
       </div>
     </div>

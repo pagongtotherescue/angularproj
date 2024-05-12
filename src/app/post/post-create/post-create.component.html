@@ -1,40 +1,41 @@
-<mat-card>
+<mat-card class="post-card">
     <form (submit)="onAddPost(postForm)" #postForm="ngForm" class="post-form">
-        <mat-form-field>
-            <input matInput 
-                type="text" 
-                name="title" 
-                ngModel 
-                required
-                #title="ngModel"
-                placeholder="Title"
-            />
-            <mat-error *ngIf="title.invalid">Please enter a title</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-            <textarea matInput rows="4" 
-                name="content" 
-                ngModel 
-                required
-                #content="ngModel"
-                placeholder="Content"
-            ></textarea>
-            <mat-error *ngIf="content.invalid">Please enter content</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-            <mat-label>Add Image URL</mat-label>
-            <input matInput 
-                type="url" 
-                name="image" 
-                ngModel 
-                required
-                #image="ngModel"
-                placeholder="Image URL"
-            />
-            <mat-error *ngIf="image.invalid">Please enter a valid image URL</mat-error>
-        </mat-form-field>
-        <div class="button-container">
-            <button mat-raised-button color="primary" type="submit">Save Post</button>
-        </div>
+      <mat-form-field appearance="fill">
+        <input matInput 
+               type="text" 
+               name="title" 
+               ngModel 
+               required
+               #title="ngModel"
+               placeholder="Title"
+        />
+        <mat-error *ngIf="title.invalid">Please enter a title</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <textarea matInput rows="4" 
+                  name="content" 
+                  ngModel 
+                  required
+                  #content="ngModel"
+                  placeholder="Content"
+        ></textarea>
+        <mat-error *ngIf="content.invalid">Please enter content</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Add Image URL</mat-label>
+        <input matInput 
+               type="url" 
+               name="image" 
+               ngModel 
+               required
+               #image="ngModel"
+               placeholder="Image URL"
+        />
+        <mat-error *ngIf="image.invalid">Please enter a valid image URL</mat-error>
+      </mat-form-field>
+      <div class="button-container">
+        <button mat-raised-button color="primary" type="submit">Save Post</button>
+      </div>
     </form>
-</mat-card>
+  </mat-card>
+  

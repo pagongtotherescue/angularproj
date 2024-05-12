@@ -1,26 +1,67 @@
 .content-container {
   display: flex;
-  justify-content: center; /* Center content horizontally */
+  justify-content: center;
 }
 
 .post-container {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center posts horizontally */
+  align-items: center;
   width: 100%;
 }
 
 .post-box {
-  width: 500px; /* Set a fixed width for the posts */
-  max-width: 100%; /* Allow posts to take up full width on smaller screens */
-  margin-bottom: 20px; /* Add some space between posts */
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
   padding: 20px;
   border: 1px solid #FFDAB9;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.post-image {
+  max-width: 100%;
+  height: auto; 
+  max-height: 300px; 
+}
+
 .button-container {
   display: flex;
   justify-content: flex-start;
-  margin-top: 10px; /* Adjust spacing between content and buttons */
+  margin-top: 10px;
 }
+.post-title {
+  font-weight: bold;
+}
+.button-container {
+  display: flex;
+  justify-content: flex-start; 
+  margin-top: 10px;
+}
+
+.button-container button {
+  margin-right: 8px; 
+}
+.edit-form-container {
+  margin-top: 20px;
+}
+
+.edit-input {
+  width: 100%;
+  margin-bottom: 15px;
+}
+.edit-buttons {
+  margin-top: 15px;
+}
+
+.edit-buttons button {
+  margin-right: 8px; /* Adjust the margin between buttons */
+}
+
