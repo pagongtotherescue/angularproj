@@ -1,84 +1,90 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { PostService } from '../posts.service';
 import { Post } from '../post.model';
+import { AuthService } from '../auth.service';
 import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
- selector: 'app-post-list',
- templateUrl: './post-list.component.html',
- styleUrls: ['./post-list.component.css']
+  selector: 'app-post-list',
+  templateUrl: './post-list.component.html',
+  styleUrls: ['./post-list.component.css']
 })
 export class PostListComponent implements OnInit, OnDestroy {
- posts: Post[] = [];
- editingPostId: string | null = null; // Track the post being edited
- private postUpdateSub!: Subscription;
- updatedPost: Post = {
-    _id: '',
-    title: '',
-    content: '',
-    imageUrl: '',
- };
- currentPage = 1;
- totalPosts = 0;
- postsPerPage = 10;
+  posts: Post[] = [];
+  private postUpdateSub!: Subscription;
+  currentPage = 1;
+  totalPosts = 0;
+  postsPerPage = 10;
+  editingPostId: string | null = null;
+  currentUser: string | null = null;
 
- constructor(public postsService: PostService, private router: Router, private route: ActivatedRoute) { }
+  constructor(
+    public postsService: PostService,
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private changeDetectorRef: ChangeDetectorRef // Inject ChangeDetectorRef
+  ) {}
 
- ngOnInit() {
+  ngOnInit() {
     this.route.queryParams.subscribe(params => {
       const page = params['page'] || 1;
       this.currentPage = page;
       this.fetchPosts();
     });
 
-    // Subscribe to post updates
+    this.currentUser = this.authService.getCurrentUserId();
+    console.log('Current User ID:', this.currentUser);
+
     this.postUpdateSub = this.postsService.getPostUpdateListener().subscribe(posts => {
       this.posts = posts;
+      this.changeDetectorRef.detectChanges(); // Trigger change detection
     });
- }
+  }
 
- ngOnDestroy() {
-    // Unsubscribe to prevent memory leaks
+  ngOnDestroy() {
     this.postUpdateSub.unsubscribe();
- }
+  }
 
- fetchPosts() {
+  fetchPosts() {
     this.postsService.getPosts(this.currentPage, this.postsPerPage).subscribe(data => {
       this.posts = data.posts;
       this.totalPosts = data.totalPosts;
+      this.changeDetectorRef.detectChanges(); // Trigger change detection
     });
- }
+  }
 
- onDeletePost(postId: string) {
-    this.postsService.deletePost(postId).subscribe(() => {
-      // Remove the deleted post from the local posts array
-      this.posts = this.posts.filter(post => post._id !== postId);
-      this.fetchPosts(); // Refresh the posts list after deletion
-    });
- }
+  // like and dislike
+  likePost(postId: string): void {
+    const postIndex = this.posts.findIndex(post => post._id === postId);
+    if (postIndex !== -1) {
+      this.posts[postIndex].likes[0] = String(Number(this.posts[postIndex].likes[0]) + 1); // Convert to string and increment
+      this.postsService.likePost(postId).subscribe({
+        next: () => console.log('Post liked successfully'),
+        error: (error) => {
+          console.error('Error liking post:', error);
+          this.posts[postIndex].likes[0] = String(Number(this.posts[postIndex].likes[0]) - 1); // Rollback on error
+        }
+      });
+    }
+  }
 
- onEditPost(postId: string) {
-    this.editingPostId = postId; // Set the post ID being edited
- }
+  dislikePost(postId: string): void {
+    const postIndex = this.posts.findIndex(post => post._id === postId);
+    if (postIndex !== -1) {
+      this.posts[postIndex].dislikes[0] = String(Number(this.posts[postIndex].dislikes[0]) + 1); // Convert to string and increment
+      this.postsService.dislikePost(postId).subscribe({
+        next: () => console.log('Post disliked successfully'),
+        error: (error) => {
+          console.error('Error disliking post:', error);
+          this.posts[postIndex].dislikes[0] = String(Number(this.posts[postIndex].dislikes[0]) - 1); // Rollback on error
+        }
+      });
+    }
+  }
 
- onSavePost(post: Post) {
-    console.log('Saving post:', post); // Debugging line
-    this.postsService.editPost(post._id, post).subscribe(() => {
-      console.log('Post saved successfully'); // Debugging line
-      // Exit edit mode
-      this.editingPostId = null;
-      this.fetchPosts(); // Refresh the posts list after saving
-    }, error => {
-      console.error('Error saving post:', error); // Debugging line
-    });
- }
-
- onCancelEdit() {
-    this.editingPostId = null;
- }
-
- onPageChange(newPage: number) {
+  onPageChange(newPage: number) {
     this.currentPage = newPage;
     this.router.navigate([], {
       relativeTo: this.route,
@@ -86,5 +92,46 @@ export class PostListComponent implements OnInit, OnDestroy {
       queryParamsHandling: 'merge'
     });
     this.fetchPosts();
- }
+  }
+
+  isOwner(creatorObject: any): boolean {
+    const creatorId = creatorObject._id;
+    return creatorId === this.authService.getCurrentUserId();
+  }
+
+  onEditPost(postId: string): void {
+    this.editingPostId = postId;
+    this.changeDetectorRef.detectChanges(); // Trigger change detection
+    // Implement logic to open the edit form or navigate to the edit page
+  }
+
+  onSavePost(post: Post) {
+    this.postsService.editPost(post._id, post).subscribe({
+      next: () => {
+        console.log('Post saved successfully');
+        this.editingPostId = null;
+        this.changeDetectorRef.detectChanges(); // Trigger change detection
+        this.fetchPosts();
+      },
+      error: (error) => console.error('Error saving post:', error)
+    });
+  }
+
+  onCancelEdit(): void {
+    this.editingPostId = null;
+    this.changeDetectorRef.detectChanges(); // Trigger change detection
+    // Implement logic to close the edit form or navigate back
+  }
+
+  onDeletePost(postId: string) {
+    this.postsService.deletePost(postId).subscribe({
+      next: () => {
+        console.log('Post deleted successfully');
+        this.posts = this.posts.filter(post => post._id!== postId);
+        this.changeDetectorRef.detectChanges(); // Trigger change detection
+        this.fetchPosts();
+      },
+      error: (error) => console.error('Error deleting post:', error)
+    });
+  }
 }

@@ -1,47 +1,56 @@
-<mat-paginator [length]="totalPosts" [pageSize]="postsPerPage" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event.pageIndex + 1)">
-</mat-paginator>
+<mat-paginator [length]="totalPosts" [pageSize]="postsPerPage" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event.pageIndex + 1)"></mat-paginator>
 
 <!-- Posts -->
 <div class="content-container">
   <ng-container *ngIf="posts.length > 0; else noPosts">
     <div class="post-container">
       <div class="post-row">
-        <div class="post-box" *ngFor="let post of posts; let i = index" [class.even]="i % 5 === 0" [class.odd]="i % 5 !== 0">
+        <!-- Loop through each post -->
+        <div class="post-box" *ngFor="let post of posts; let i = index" [class.even]="i % 5 === 0" [class.odd]="i % 5!== 0">
           <h3 class="post-title">{{ post.title }}</h3>
           <div class="post-content">
             <p>{{ post.content }}</p>
+            <!-- Display post image if available -->
             <img *ngIf="post.imageUrl" [src]="post.imageUrl" alt="Post Image" class="post-image">
           </div>
-      <!-- Edit -->
-      <div *ngIf="!editingPostId || editingPostId === post._id">
-        <!-- Edit form -->
-        <div *ngIf="editingPostId === post._id" class="edit-form-container">
-          <form (ngSubmit)="onSavePost(post)" class="edit-form">
-            <mat-form-field class="edit-input">
-              <mat-label>Title</mat-label>
-              <input matInput [(ngModel)]="post.title" name="title">
-            </mat-form-field>
-            <mat-form-field class="edit-input">
-              <mat-label>Content</mat-label>
-              <textarea matInput [(ngModel)]="post.content" name="content"></textarea>
-            </mat-form-field>
-            <div class="edit-buttons">
-              <button mat-raised-button color="primary" type="submit">Save</button>
-              <button mat-raised-button color="warn" (click)="onCancelEdit()">Cancel</button>
-            </div>
-          </form>
-        </div>
-      
-        <!-- Buttons -->
-        <div *ngIf="!editingPostId || editingPostId !== post._id" class="button-container">
-          <button mat-button color="primary" (click)="onEditPost(post._id)">
-            <mat-icon>edit</mat-icon> Edit
-          </button>
-          <button mat-button color="warn" (click)="onDeletePost(post._id)">
-            <mat-icon>delete</mat-icon> Delete
-          </button>
-        </div>
-      </div>            
+          <!-- Like and Dislike Buttons -->
+          <div class="like-dislike-buttons">
+            <button class="like-button" (click)="likePost(post._id)">
+              <i class="material-icons">thumb_up</i>
+            </button>
+            <button class="dislike-button" (click)="dislikePost(post._id)">
+              <i class="material-icons">thumb_down</i>
+            </button>
+          </div>
+
+          <!-- Edit and Delete Buttons -->
+          <div *ngIf="isOwner(post.creator)">
+            <button mat-button color="primary" (click)="onEditPost(post._id)">
+              <mat-icon>edit</mat-icon> Edit
+            </button>
+            <button mat-button color="warn" (click)="onDeletePost(post._id)">
+              <mat-icon>delete</mat-icon> Delete
+            </button>
+          </div>
+
+          <!-- Edit Form -->
+          <!-- Display edit form only if the current post is being edited -->
+          <div *ngIf="editingPostId === post._id" class="edit-form-container">
+            <form (ngSubmit)="onSavePost(post)" class="edit-form">
+              <mat-form-field class="edit-input">
+                <mat-label>Title</mat-label>
+                <input matInput [(ngModel)]="post.title" name="title">
+              </mat-form-field>
+              <mat-form-field class="edit-input">
+                <mat-label>Content</mat-label>
+                <textarea matInput [(ngModel)]="post.content" name="content"></textarea>
+              </mat-form-field>
+              <div class="edit-buttons">
+                <button mat-raised-button color="primary" type="submit">Save</button>
+                <button mat-raised-button color="warn" (click)="onCancelEdit()">Cancel</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

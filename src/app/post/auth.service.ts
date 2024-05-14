@@ -73,4 +73,15 @@ export class AuthService {
         })
       );
   }
+
+  // Method to get the current user's ID
+  getCurrentUserId(): string | null {
+    const token = this.getToken();
+    if (token) {
+      // Decode the token to extract user information
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.userId;
+    }
+    return null;
+  }
 }

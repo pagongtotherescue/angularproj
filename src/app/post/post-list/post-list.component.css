@@ -64,4 +64,41 @@
 .edit-buttons button {
   margin-right: 8px; /* Adjust the margin between buttons */
 }
+/* Like and Dislike Buttons */
+.like-dislike-buttons {
+  display: flex-start;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.like-dislike-buttons button {
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.like-dislike-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.like-button {
+  color: #64b5f6; /* Like button color */
+}
+
+.dislike-button {
+  color: #ef5350; /* Dislike button color */
+}
+
+.like-button:hover {
+  color: #2196f3; /* Like button hover color */
+}
+
+.dislike-button:hover {
+  color: #e53935; /* Dislike button hover color */
+}
+
+
 

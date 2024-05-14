@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Post } from "./post.model";
 import { Observable, Subject } from "rxjs";
-import { HttpClient, HttpParams, HttpHeaders } from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http"; // Import HttpParams here
 import { map, tap } from 'rxjs/operators';
 import { AuthService } from "./auth.service";
 
@@ -16,8 +16,8 @@ export class PostService {
 
     getPosts(page: number = 1, limit: number = 10): Observable<{ message: string; posts: Post[]; totalPosts: number; page: number; limit: number }> {
         const params = new HttpParams()
-            .set('page', page.toString())
-            .set('limit', limit.toString());
+           .set('page', page.toString())
+           .set('limit', limit.toString());
     
         const token = this.authService.getToken() || '';
         const headers = new HttpHeaders().set('Authorization', 'Bearer ' + token);
@@ -29,7 +29,6 @@ export class PostService {
         );
     }
     
-
     getPostUpdateListener() {
         return this.postUpdated.asObservable();
     }
@@ -71,6 +70,24 @@ export class PostService {
                 this.getPosts().subscribe(posts => {
                     this.postUpdated.next(posts.posts);
                 });
+            })
+        );
+    }
+
+    likePost(postId: string): Observable<any> {
+        const token = this.authService.getToken() || ''; // Ensure you have a method to get the token
+        const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+        return this.http.post(`${this.apiUrl}/${postId}/like`, {}, { headers }).pipe(
+            tap(() => {
+                // No need to handle likes here, as it's done in the component
+            })
+        );
+    }
+    
+    dislikePost(postId: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/${postId}/dislike`, {}).pipe(
+            tap(() => {
+                // No need to handle dislikes here, as it's done in the component
             })
         );
     }

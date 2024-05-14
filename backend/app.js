@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const app = express();
+const router = express.Router(); // Instantiate router
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const Post = require('./models/post.js');
@@ -41,7 +42,7 @@ app.use((req, res, next) => {
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader ||!authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'No token provided' });
   }
   const token = authHeader.split(' ')[1]; // Extract token from Authorization header
@@ -54,8 +55,28 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+// Middleware to check post ownership
+const checkPostOwnership = async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    if (!post.creator || post.creator.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Unauthorized' }); // User does not own the post
+    }
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Add router to the app
+app.use(router);
+
 // Add post
-app.post('/api/posts', verifyToken, (req, res) => {
+router.post('/api/posts', verifyToken, (req, res) => {
     const { title, content, imageUrl } = req.body;
     const userId = req.userId; // Get the user ID from the token
   
@@ -78,62 +99,99 @@ app.post('/api/posts', verifyToken, (req, res) => {
   
   
 // DELETE route for deleting 
-app.delete('/api/posts/:id', async (req, res) => {
-    try {
-       const post = await Post.findByIdAndDelete(req.params.id);
-       if (!post) {
-         return res.status(404).json({ message: 'Post not found' });
-       }
-       res.json({ message: 'Post deleted successfully' });
-    } catch (error) {
-       res.status(500).json({ message: 'Server error' });
-    }
+router.delete('/api/posts/:id', verifyToken, checkPostOwnership, async (req, res) => {
+  try {
+     const post = await Post.findByIdAndDelete(req.params.id);
+     if (!post) {
+       return res.status(404).json({ message: 'Post not found' });
+     }
+     res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+     res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // update route for updating 
-app.put('/api/posts/:id', async (req, res) => {
-    console.log('Received PUT request for post ID:', req.params.id);
-    console.log('Request body:', req.body);
-    try {
-       const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
-       if (!post) {
-         return res.status(404).json({ message: 'Post not found' });
-       }
-       res.json(post);
-    } catch (error) {
-       res.status(500).json({ message: 'Server error' });
-    }
-});
+router.put('/api/posts/:id', verifyToken, checkPostOwnership, async (req, res) => {
+  try {
+     const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
+     if (!post) {
+       return res.status(404).json({ message: 'Post not found' });
+     }
+     res.json(post);
+  } catch (error) {
+     res.status(500).json({ message: 'Server error' });
+  }
+}); 
+
 
 // Fetch posts with pagination
-app.get('/api/posts', verifyToken, async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 5; // Set limit to 5 posts per page
-    const skip = (page - 1) * limit;
-  
-    try {
-      const userId = req.userId; // Get the user ID from the token
-      const posts = await Post.find({ creator: userId }).skip(skip).limit(limit);
-      const totalPosts = await Post.countDocuments({ creator: userId });
-  
-      res.status(200).json({
-        message: 'Posts fetched successfully',
-        posts: posts,
-        totalPosts: totalPosts,
-        page: page,
-        limit: limit
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching posts' });
-    }
-  });
-  
+router.get('/api/posts', verifyToken, async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 5; // Set limit to 5 posts per page
+  const skip = (page - 1) * limit;
+
+  try {
+    const posts = await Post.find().skip(skip).limit(limit).populate('creator'); // Populate the creator field
+    const totalPosts = await Post.countDocuments();
+
+    res.status(200).json({
+      message: 'Posts fetched successfully',
+      posts: posts,
+      totalPosts: totalPosts,
+      page: page,
+      limit: limit
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching posts' });
+  }
+});
+
+// Like a post
+router.post('/api/posts/:postId/like', verifyToken, async (req, res) => {
+  try {
+      const postId = req.params.postId;
+      const userId = req.userId;
+      const post = await Post.findById(postId);
+      
+      if (!post.likes.includes(userId)) {
+          post.likes.push(userId);
+          post.likesCount++;
+          await post.save();
+      }
+
+      res.status(200).json({ message: 'Post liked successfully' });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Dislike a post
+router.post('/api/posts/:postId/dislike', verifyToken, async (req, res) => {
+  try {
+      const postId = req.params.postId;
+      const userId = req.userId;
+      const post = await Post.findById(postId);
+      
+      if (!post.dislikes.includes(userId)) {
+          post.dislikes.push(userId);
+          post.dislikesCount++;
+          await post.save();
+      }
+
+      res.status(200).json({ message: 'Post disliked successfully' });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Signup Route
 app.post('/api/signup', async (req, res) => {
   try {
-      const { username, password } = req.body;
+      const { username, password } = req.body;    
       const existingUser = await User.findOne({ username });
 
       if (existingUser) {
@@ -149,7 +207,6 @@ app.post('/api/signup', async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 // Login Route
 app.post('/api/login', async (req, res) => {
