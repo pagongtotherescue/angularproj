@@ -57,32 +57,34 @@ export class PostListComponent implements OnInit, OnDestroy {
 
   // like and dislike
   likePost(postId: string): void {
-    const postIndex = this.posts.findIndex(post => post._id === postId);
-    if (postIndex !== -1) {
-      this.posts[postIndex].likes[0] = String(Number(this.posts[postIndex].likes[0]) + 1); // Convert to string and increment
-      this.postsService.likePost(postId).subscribe({
-        next: () => console.log('Post liked successfully'),
-        error: (error) => {
-          console.error('Error liking post:', error);
-          this.posts[postIndex].likes[0] = String(Number(this.posts[postIndex].likes[0]) - 1); // Rollback on error
-        }
-      });
-    }
-  }
+   this.postsService.likePost(postId).subscribe({
+     next: (updatedPost) => {
+       // Find the index of the updated post in the posts array
+       const postIndex = this.posts.findIndex(post => post._id === updatedPost._id);
+       if (postIndex!== -1) {
+         // Replace the old post with the updated post
+         this.posts[postIndex] = updatedPost;
+       }
+     },
+     error: (error) => console.error('Error liking post:', error)
+   });
+ }
+ 
+ dislikePost(postId: string): void {
+  this.postsService.dislikePost(postId).subscribe({
+      next: (response) => {
+          const updatedPost = response.post;
+          const postIndex = this.posts.findIndex(post => post._id === updatedPost._id);
+          if (postIndex !== -1) {
+              this.posts[postIndex] = updatedPost;
+              this.changeDetectorRef.detectChanges(); // Trigger change detection
+          }
+      },
+      error: (error) => console.error('Error disliking post:', error)
+  });
+}
 
-  dislikePost(postId: string): void {
-    const postIndex = this.posts.findIndex(post => post._id === postId);
-    if (postIndex !== -1) {
-      this.posts[postIndex].dislikes[0] = String(Number(this.posts[postIndex].dislikes[0]) + 1); // Convert to string and increment
-      this.postsService.dislikePost(postId).subscribe({
-        next: () => console.log('Post disliked successfully'),
-        error: (error) => {
-          console.error('Error disliking post:', error);
-          this.posts[postIndex].dislikes[0] = String(Number(this.posts[postIndex].dislikes[0]) - 1); // Rollback on error
-        }
-      });
-    }
-  }
+
 
   onPageChange(newPage: number) {
     this.currentPage = newPage;

@@ -17,9 +17,11 @@
           <div class="like-dislike-buttons">
             <button class="like-button" (click)="likePost(post._id)">
               <i class="material-icons">thumb_up</i>
+              <span>{{ post.likes.length }}</span> <!-- Display the count of likes -->
             </button>
             <button class="dislike-button" (click)="dislikePost(post._id)">
               <i class="material-icons">thumb_down</i>
+              <span>{{ post.dislikes.length }}</span> <!-- Display the count of dislikes -->
             </button>
           </div>
 

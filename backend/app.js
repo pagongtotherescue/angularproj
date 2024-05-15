@@ -7,7 +7,7 @@ const cors = require('cors');
 const Post = require('./models/post.js');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const User = require('./models/user.js'); 
+const User = require('./models/user.js');
 const jwt = require('jsonwebtoken');
 
 // Generate dynamic secret key
@@ -24,34 +24,34 @@ app.use(cors());
 
 // Connect to MongoDB
 mongoose.connect("mongodb+srv://mildangelee:mildangelee@cluster0.udqsxgk.mongodb.net/meanstack?retryWrites=true&w=majority&appName=Cluster0")
-.then(() => {
+  .then(() => {
     console.log('Connected to the database');
-})
-.catch(() => {
+  })
+  .catch(() => {
     console.log('connection failed');
-});
+  });
 
 // CORS headers
 app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Origin, x-Requested-with, Content-Type, Accept");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
-    next();
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Origin, x-Requested-with, Content-Type, Accept");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+  next();
 });
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader ||!authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'No token provided' });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token provided' });
   }
   const token = authHeader.split(' ')[1]; // Extract token from Authorization header
   jwt.verify(token, secretKey, (err, decoded) => {
-      if (err) {
-          return res.status(401).json({ message: 'Failed to authenticate token' });
-      }
-      req.userId = decoded.userId;
-      next();
+    if (err) {
+      return res.status(401).json({ message: 'Failed to authenticate token' });
+    }
+    req.userId = decoded.userId;
+    next();
   });
 };
 
@@ -77,53 +77,51 @@ app.use(router);
 
 // Add post
 router.post('/api/posts', verifyToken, (req, res) => {
-    const { title, content, imageUrl } = req.body;
-    const userId = req.userId; // Get the user ID from the token
-  
-    const post = new Post({
-      title,
-      content,
-      imageUrl,
-      creator: userId // Associate the post with the authenticated user
-    });
-  
-    post.save()
-      .then(savedPost => {
-        res.status(201).json(savedPost);
-      })
-      .catch(err => {
-        console.error(err);
-        res.status(500).json({ message: 'Error saving post' });
-      });
+  const { title, content, imageUrl } = req.body;
+  const userId = req.userId; // Get the user ID from the token
+
+  const post = new Post({
+    title,
+    content,
+    imageUrl,
+    creator: userId // Associate the post with the authenticated user
   });
-  
-  
+
+  post.save()
+    .then(savedPost => {
+      res.status(201).json(savedPost);
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ message: 'Error saving post' });
+    });
+});
+
 // DELETE route for deleting 
 router.delete('/api/posts/:id', verifyToken, checkPostOwnership, async (req, res) => {
   try {
-     const post = await Post.findByIdAndDelete(req.params.id);
-     if (!post) {
-       return res.status(404).json({ message: 'Post not found' });
-     }
-     res.json({ message: 'Post deleted successfully' });
+    const post = await Post.findByIdAndDelete(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.json({ message: 'Post deleted successfully' });
   } catch (error) {
-     res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
 // update route for updating 
 router.put('/api/posts/:id', verifyToken, checkPostOwnership, async (req, res) => {
   try {
-     const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
-     if (!post) {
-       return res.status(404).json({ message: 'Post not found' });
-     }
-     res.json(post);
+    const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.json(post);
   } catch (error) {
-     res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' });
   }
-}); 
-
+});
 
 // Fetch posts with pagination
 router.get('/api/posts', verifyToken, async (req, res) => {
@@ -151,80 +149,96 @@ router.get('/api/posts', verifyToken, async (req, res) => {
 // Like a post
 router.post('/api/posts/:postId/like', verifyToken, async (req, res) => {
   try {
-      const postId = req.params.postId;
-      const userId = req.userId;
-      const post = await Post.findById(postId);
-      
-      if (!post.likes.includes(userId)) {
-          post.likes.push(userId);
-          post.likesCount++;
-          await post.save();
-      }
+    const postId = req.params.postId;
+    const userId = req.userId;
+    const post = await Post.findById(postId);
 
-      res.status(200).json({ message: 'Post liked successfully' });
+    // Check if the user has already liked the post
+    if (!post.likes.includes(userId)) {
+      // Add the user's ID to the likes array
+      post.likes.push(userId);
+      // Remove the user's ID from the dislikes array if present
+      post.dislikes.pull(userId);
+      await post.save();
+    } else {
+      // If the user has already liked the post, remove their like
+      post.likes.pull(userId);
+      await post.save();
+    }
+
+    // Return the updated post with the new likes and dislikes count
+    res.status(200).json({ message: 'Post liked successfully', post });
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // Dislike a post
 router.post('/api/posts/:postId/dislike', verifyToken, async (req, res) => {
   try {
-      const postId = req.params.postId;
-      const userId = req.userId;
-      const post = await Post.findById(postId);
-      
-      if (!post.dislikes.includes(userId)) {
-          post.dislikes.push(userId);
-          post.dislikesCount++;
-          await post.save();
-      }
+    const postId = req.params.postId;
+    const userId = req.userId;
+    const post = await Post.findById(postId);
 
-      res.status(200).json({ message: 'Post disliked successfully' });
+    // Check if the user has already disliked the post
+    if (!post.dislikes.includes(userId)) {
+      // Add the user's ID to the dislikes array
+      post.dislikes.push(userId);
+      // Remove the user's ID from the likes array if present
+      post.likes.pull(userId);
+      await post.save();
+    } else {
+      // If the user has already disliked the post, remove their dislike
+      post.dislikes.pull(userId);
+      await post.save();
+    }
+
+    // Return the updated post with the new dislikes and likes count
+    res.status(200).json({ message: 'Post disliked successfully', post });
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // Signup Route
 app.post('/api/signup', async (req, res) => {
   try {
-      const { username, password } = req.body;    
-      const existingUser = await User.findOne({ username });
+    const { username, password } = req.body;
+    const existingUser = await User.findOne({ username });
 
-      if (existingUser) {
-          return res.status(400).json({ message: 'Username already exists' });
-      }
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = new User({ username, password: hashedPassword });
-      await user.save();
-      res.status(201).json({ message: 'User created successfully' });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, password: hashedPassword });
+    await user.save();
+    res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
-      console.error('Signup error:', error);
-      res.status(500).json({ message: 'Server error' });
+    console.error('Signup error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
 // Login Route
 app.post('/api/login', async (req, res) => {
   try {
-      const { username, password } = req.body;
-      const user = await User.findOne({ username });
-      if (!user) {
-          return res.status(401).json({ message: 'Authentication failed' });
-      }
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-          return res.status(401).json({ message: 'Authentication failed' });
-      }
-      const token = jwt.sign({ userId: user._id }, secretKey, { expiresIn: '1h' });
-      res.status(200).json({ token });
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication failed' });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Authentication failed' });
+    }
+    const token = jwt.sign({ userId: user._id }, secretKey, { expiresIn: '1h' });
+    res.status(200).json({ token });
   } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -239,8 +253,8 @@ app.use('/api/posts', verifyToken);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Error Failed!');
+  console.error(err.stack);
+  res.status(500).send('Error Failed!');
 });
 
 module.exports = app;

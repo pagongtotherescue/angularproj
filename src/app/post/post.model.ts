@@ -3,8 +3,8 @@ export interface Post {
     title: string;
     content: string;
     imageUrl: string;
-    likes: string[]; // Change type from number[] to string[]
-    dislikes: string[]; // Change type from number[] to string[]
+    likes: string[]; 
+    dislikes: string[]; 
     creator: string;
     isLiked?: boolean; 
     isDisliked?: boolean;

@@ -85,10 +85,12 @@ export class PostService {
     }
     
     dislikePost(postId: string): Observable<any> {
-        return this.http.post(`${this.apiUrl}/${postId}/dislike`, {}).pipe(
+        const token = this.authService.getToken() || ''; // Ensure you have a method to get the token
+        const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+        return this.http.post(`${this.apiUrl}/${postId}/dislike`, {}, { headers }).pipe(
             tap(() => {
                 // No need to handle dislikes here, as it's done in the component
             })
         );
-    }
+    }    
 }
