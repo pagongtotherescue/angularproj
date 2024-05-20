@@ -12,6 +12,10 @@ import { Router, ActivatedRoute } from '@angular/router';
 })
 export class PostListComponent implements OnInit, OnDestroy {
   posts: Post[] = [];
+  comments: any[] = [];
+  newComment: string = '';
+  newReply: string = '';
+  replyToCommentId: string | null = null;
   private postUpdateSub!: Subscription;
   currentPage = 1;
   totalPosts = 0;
@@ -24,7 +28,7 @@ export class PostListComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private changeDetectorRef: ChangeDetectorRef // Inject ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -39,8 +43,11 @@ export class PostListComponent implements OnInit, OnDestroy {
 
     this.postUpdateSub = this.postsService.getPostUpdateListener().subscribe(posts => {
       this.posts = posts;
-      this.changeDetectorRef.detectChanges(); // Trigger change detection
+      this.posts.forEach(post => this.fetchComments(post._id)); // Fetch comments for each post
+      this.changeDetectorRef.detectChanges();
     });
+
+    this.fetchPosts();
   }
 
   ngOnDestroy() {
@@ -51,40 +58,72 @@ export class PostListComponent implements OnInit, OnDestroy {
     this.postsService.getPosts(this.currentPage, this.postsPerPage).subscribe(data => {
       this.posts = data.posts;
       this.totalPosts = data.totalPosts;
-      this.changeDetectorRef.detectChanges(); // Trigger change detection
+      this.posts.forEach(post => this.fetchComments(post._id)); // Fetch comments for each post
+      this.changeDetectorRef.detectChanges();
     });
   }
 
-  // like and dislike
-  likePost(postId: string): void {
-   this.postsService.likePost(postId).subscribe({
-     next: (updatedPost) => {
-       // Find the index of the updated post in the posts array
-       const postIndex = this.posts.findIndex(post => post._id === updatedPost._id);
-       if (postIndex!== -1) {
-         // Replace the old post with the updated post
-         this.posts[postIndex] = updatedPost;
-       }
-     },
-     error: (error) => console.error('Error liking post:', error)
-   });
- }
- 
- dislikePost(postId: string): void {
-  this.postsService.dislikePost(postId).subscribe({
-      next: (response) => {
-          const updatedPost = response.post;
-          const postIndex = this.posts.findIndex(post => post._id === updatedPost._id);
-          if (postIndex !== -1) {
-              this.posts[postIndex] = updatedPost;
-              this.changeDetectorRef.detectChanges(); // Trigger change detection
+  fetchComments(postId: string) {
+    this.postsService.getComments(postId).subscribe(comments => {
+      this.comments = this.comments.filter(comment => comment.postId !== postId).concat(comments);
+      this.changeDetectorRef.detectChanges();
+    });
+  }
+
+  addComment(postId: string) {
+    if (this.newComment.trim() !== '') {
+      this.postsService.addComment(postId, this.newComment).subscribe(comment => {
+        this.comments.push(comment);
+        this.newComment = '';
+        this.changeDetectorRef.detectChanges();
+      });
+    }
+  }
+
+  addReply(postId: string, commentId: string) {
+    if (this.newReply.trim() !== '') {
+      this.postsService.addComment(postId, this.newReply, commentId).subscribe(reply => {
+        // Locate the parent comment and add the reply to its children
+        const parentCommentIndex = this.comments.findIndex(comment => comment._id === commentId);
+        if (parentCommentIndex !== -1) {
+          if (!this.comments[parentCommentIndex].replies) {
+            this.comments[parentCommentIndex].replies = [];
           }
+          this.comments[parentCommentIndex].replies.push(reply);
+        }
+        this.newReply = '';
+        this.replyToCommentId = null;
+        this.changeDetectorRef.detectChanges();
+      });
+    }
+  }
+
+  likePost(postId: string): void {
+    this.postsService.likePost(postId).subscribe({
+      next: (updatedPost) => {
+        const postIndex = this.posts.findIndex(post => post._id === updatedPost._id);
+        if (postIndex !== -1) {
+          this.posts[postIndex] = updatedPost;
+        }
+        this.changeDetectorRef.detectChanges();
+      },
+      error: (error) => console.error('Error liking post:', error)
+    });
+  }
+
+  dislikePost(postId: string): void {
+    this.postsService.dislikePost(postId).subscribe({
+      next: (response) => {
+        const updatedPost = response.post;
+        const postIndex = this.posts.findIndex(post => post._id === updatedPost._id);
+        if (postIndex !== -1) {
+          this.posts[postIndex] = updatedPost;
+          this.changeDetectorRef.detectChanges();
+        }
       },
       error: (error) => console.error('Error disliking post:', error)
-  });
-}
-
-
+    });
+  }
 
   onPageChange(newPage: number) {
     this.currentPage = newPage;
@@ -103,8 +142,7 @@ export class PostListComponent implements OnInit, OnDestroy {
 
   onEditPost(postId: string): void {
     this.editingPostId = postId;
-    this.changeDetectorRef.detectChanges(); // Trigger change detection
-    // Implement logic to open the edit form or navigate to the edit page
+    this.changeDetectorRef.detectChanges();
   }
 
   onSavePost(post: Post) {
@@ -112,7 +150,7 @@ export class PostListComponent implements OnInit, OnDestroy {
       next: () => {
         console.log('Post saved successfully');
         this.editingPostId = null;
-        this.changeDetectorRef.detectChanges(); // Trigger change detection
+        this.changeDetectorRef.detectChanges();
         this.fetchPosts();
       },
       error: (error) => console.error('Error saving post:', error)
@@ -121,16 +159,15 @@ export class PostListComponent implements OnInit, OnDestroy {
 
   onCancelEdit(): void {
     this.editingPostId = null;
-    this.changeDetectorRef.detectChanges(); // Trigger change detection
-    // Implement logic to close the edit form or navigate back
+    this.changeDetectorRef.detectChanges();
   }
 
   onDeletePost(postId: string) {
     this.postsService.deletePost(postId).subscribe({
       next: () => {
         console.log('Post deleted successfully');
-        this.posts = this.posts.filter(post => post._id!== postId);
-        this.changeDetectorRef.detectChanges(); // Trigger change detection
+        this.posts = this.posts.filter(post => post._id !== postId);
+        this.changeDetectorRef.detectChanges();
         this.fetchPosts();
       },
       error: (error) => console.error('Error deleting post:', error)

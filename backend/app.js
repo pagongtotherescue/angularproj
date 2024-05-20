@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const User = require('./models/user.js');
 const jwt = require('jsonwebtoken');
+const Comment = require('./models/comment.js');
 
 // Generate dynamic secret key
 const secretKey = crypto.randomBytes(32).toString('hex');
@@ -155,9 +156,7 @@ router.post('/api/posts/:postId/like', verifyToken, async (req, res) => {
 
     // Check if the user has already liked the post
     if (!post.likes.includes(userId)) {
-      // Add the user's ID to the likes array
       post.likes.push(userId);
-      // Remove the user's ID from the dislikes array if present
       post.dislikes.pull(userId);
       await post.save();
     } else {
@@ -199,6 +198,41 @@ router.post('/api/posts/:postId/dislike', verifyToken, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Add a comment to a post
+router.post('/api/posts/:postId/comments', verifyToken, (req, res) => {
+  const { content, parentCommentId } = req.body;
+  const userId = req.userId;
+  const postId = req.params.postId;
+
+  const comment = new Comment({
+    content,
+    postId,
+    creator: userId,
+    parentCommentId: parentCommentId || null
+  });
+
+  comment.save()
+    .then(savedComment => {
+      res.status(201).json(savedComment);
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ message: 'Error saving comment' });
+    });
+});
+
+// Fetch comments for a post
+router.get('/api/posts/:postId/comments', async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const comments = await Comment.find({ postId }).populate('creator').populate('parentCommentId');
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching comments' });
   }
 });
 

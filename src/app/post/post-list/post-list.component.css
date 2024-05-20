@@ -20,51 +20,16 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.image-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
 .post-image {
   max-width: 100%;
   height: auto; 
   max-height: 300px; 
 }
 
-.button-container {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 10px;
-}
 .post-title {
   font-weight: bold;
 }
-.button-container {
-  display: flex;
-  justify-content: flex-start; 
-  margin-top: 10px;
-}
 
-.button-container button {
-  margin-right: 8px; 
-}
-.edit-form-container {
-  margin-top: 20px;
-}
-
-.edit-input {
-  width: 100%;
-  margin-bottom: 15px;
-}
-.edit-buttons {
-  margin-top: 15px;
-}
-
-.edit-buttons button {
-  margin-right: 8px; /* Adjust the margin between buttons */
-}
-/* Like and Dislike Buttons */
 .like-dislike-buttons {
   display: flex-start;
   justify-content: space-between;
@@ -100,5 +65,121 @@
   color: #e53935; /* Dislike button hover color */
 }
 
+.edit-form-container {
+  margin-top: 20px;
+}
 
+.edit-input {
+  width: 100%;
+  margin-bottom: 15px;
+}
 
+.edit-buttons {
+  margin-top: 15px;
+}
+
+.edit-buttons button {
+  margin-right: 8px; /* Adjust the margin between buttons */
+}
+
+/* Comments Section */
+.comments-section {
+  margin-top: 20px;
+}
+
+.add-comment {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.comment-input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.add-comment-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-comment-button:hover {
+  background-color: #0056b3;
+}
+
+.comment {
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.comment-author {
+  font-weight: bold;
+  color: #555;
+}
+
+.reply-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-left: 10px;
+}
+
+.reply-button:hover {
+  background-color: #0056b3;
+}
+
+.replies {
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.reply {
+  background-color: #eaeaea;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.reply-author {
+  font-weight: bold;
+  color: #555;
+}
+
+.reply-input-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.reply-input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.add-reply-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-reply-button:hover {
+  background-color: #0056b3;
+}

@@ -6,7 +6,7 @@
     <div class="post-container">
       <div class="post-row">
         <!-- Loop through each post -->
-        <div class="post-box" *ngFor="let post of posts; let i = index" [class.even]="i % 5 === 0" [class.odd]="i % 5!== 0">
+        <div class="post-box" *ngFor="let post of posts; let i = index" [class.even]="i % 5 === 0" [class.odd]="i % 5 !== 0">
           <h3 class="post-title">{{ post.title }}</h3>
           <div class="post-content">
             <p>{{ post.content }}</p>
@@ -49,9 +49,37 @@
               </mat-form-field>
               <div class="edit-buttons">
                 <button mat-raised-button color="primary" type="submit">Save</button>
-                <button mat-raised-button color="warn" (click)="onCancelEdit()">Cancel</button>
+                <button mat-raised-button color="warn" type="button" (click)="onCancelEdit()">Cancel</button>
               </div>
             </form>
+          </div>
+
+          <!-- Comments Section -->
+          <div class="comments-section">
+            <div class="add-comment">
+              <input type="text" [(ngModel)]="newComment" placeholder="Add a comment" class="comment-input">
+              <button (click)="addComment(post._id)" class="add-comment-button">Add Comment</button>
+            </div>
+            <div *ngFor="let comment of comments" class="comment-container">
+              <ng-container *ngIf="comment.postId === post._id">
+                <div class="comment">
+                  <p>{{ comment.content }} <span class="comment-author">by {{ comment.creator.username }}</span></p>
+                  <button (click)="replyToCommentId = comment._id" class="reply-button">Reply</button>
+                  <div class="replies">
+                    <ng-container *ngFor="let reply of comments">
+                      <div class="reply" *ngIf="reply.parentCommentId === comment._id">
+                        <p>{{ reply.content }} <span class="reply-author">by {{ reply.creator.username }}</span></p>
+                      </div>
+                    </ng-container>
+                  </div>
+                  <!-- Reply Input -->
+                  <div *ngIf="replyToCommentId === comment._id" class="reply-input-container">
+                    <input type="text" [(ngModel)]="newReply" placeholder="Add a reply" class="reply-input">
+                    <button (click)="addReply(post._id, comment._id)" class="add-reply-button">Reply</button>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
           </div>
         </div>
       </div>

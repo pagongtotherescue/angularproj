@@ -8,4 +8,12 @@ export interface Post {
     creator: string;
     isLiked?: boolean; 
     isDisliked?: boolean;
+    comments: Comment[]; 
+}
+
+export interface Comment {
+    _id: string;
+    content: string;
+    creator: string;
+    createdAt: Date;
 }
